@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EquityEngine: The Financial Independence Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg width='512' height='512' viewBox='0 0 512 512' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M448 224V160H384V96H320V32H256V96H192V160H128V224H64V480H448V224Z' fill='%232C3E50'/%3E%3Cpath d='M384 480V352H320V288H256V224H192V288H128V352H64' fill='%3498DB'/%3E%3Cpath d='M448 480V352H384V288H320V224H256' fill='%232980B9'/%3E%3C/svg%3E">
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+        html { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .input-container { background-color: white; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        details { transition: background-color 0.2s; }
+        details:first-of-type { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; }
+        details:last-of-type { border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
+        details:not(:last-of-type) { border-bottom: 0; }
+        details summary { padding: 1rem; font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; }
+        details[open] { background-color: #f8fafc; }
+        .details-content { padding: 1rem; border-top: 1px solid #e2e8f0; }
+        summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
+        summary::-webkit-details-marker { display: none; }
+        .details-arrow { transition: transform 0.2s; width: 1.25rem; height: 1.25rem; color: #64748b; }
+        details[open] .details-arrow { transform: rotate(90deg); }
+        .input-field { margin-top: 0.25rem; width: 100%; padding: 0.5rem; border-radius: 0.375rem; background-color: #f1f5f9; border: 1px solid #cbd5e1; }
+        .tooltip-container { display: inline-flex; align-items: center; }
+        .help-icon { display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 9999px; background-color: #e2e8f0; color: #475569; font-size: 0.7rem; font-weight: bold; cursor: pointer; margin-left: 0.3rem; transition: background-color 0.2s; }
+        .help-icon:hover { background-color: #cbd5e1; }
+        #global-tooltip { position: fixed; background-color: #0f172a; color: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; text-align: left; white-space: normal; z-index: 10000; width: max-content; max-width: 300px; pointer-events: none; opacity: 0; transform: scale(0.95); transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; will-change: transform, opacity; border: 1px solid #334155; }
+        #global-tooltip.visible { opacity: 1; transform: scale(1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M448 224V160H384V96H320V32H256V96H192V160H128V224H64V480H448V224Z" fill="#2C3E50"/><path d="M384 480V352H320V288H256V224H192V288H128V352H64" fill="#3498DB"/><path d="M448 480V352H384V288H320V224H256" fill="#2980B9"/></svg>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 app-name">EquityEngine</h1>
+                    <p class="text-sm text-slate-500">Your Journey to Financial Independence</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <aside class="lg:col-span-1">
+                <div class="input-container">
+                    <details open>
+                        <summary><span class="tooltip-container" data-tooltip="Define your current financial situation and long-term retirement goals.">Personal Finances & Goals<span class="help-icon">?</span></span><svg class="details-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></summary>
+                        <div class="details-content space-y-4">
+                            <div><label for="currentIncome" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Your total annual income from your primary job(s) before taxes. Used to calculate your savings and FI target.">Current W2 Income ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="currentIncome" value="$150,000" class="input-field"></div>
+                            <div><label for="annualSavings" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The total amount of cash you set aside each year for all investments (both real estate and stocks).">Total Annual Savings ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="annualSavings" value="$40,000" class="input-field"></div>
+                            <div><label for="initialCapital" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The lump sum of cash you have available to invest right now (Year 0). This will be allocated based on your strategy.">Initial Investment Capital<span class="help-icon">?</span></span></label><input type="text" id="initialCapital" value="$100,000" class="input-field"></div>
+                            <div><label for="coastFireIncome" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The annual income you plan to earn from part-time or low-stress work after leaving your main W2 job. This 'Coast FIRE' income reduces the passive income needed from your portfolio.">Post-W2 'Coast FIRE' Income ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="coastFireIncome" value="$20,000" class="input-field"></div>
+                            <div><label for="inflationRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The long-term expected annual inflation rate. This is used to adjust your FI Target Income over time.">Assumed Inflation (%)<span class="help-icon">?</span></span></label><input type="text" id="inflationRate" value="2.5" class="input-field"></div>
+                             <div class="grid grid-cols-2 gap-4">
+                                <div><label for="taxRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Your blended marginal tax rate (Federal + State). Used to calculate after-tax cash flow.">Marginal Tax %<span class="help-icon">?</span></span></label><input type="text" id="taxRate" value="32" class="input-field"></div>
+                                <div><label for="sp500Return" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The expected annual return for the S&P 500. Used to model the growth of your stock portfolio.">S&P 500 Return %<span class="help-icon">?</span></span></label><input type="text" id="sp500Return" value="8" class="input-field"></div>
+                            </div>
+                        </div>
+                    </details>
+                    
+                     <details>
+                        <summary><span class="tooltip-container" data-tooltip="Define how you'll allocate your capital between real estate and the stock market.">Strategic Allocation<span class="help-icon">?</span></span><svg class="details-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></summary>
+                        <div class="details-content space-y-4">
+                            <div>
+                                <label for="riskProfile" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Select a risk profile to get a suggested allocation, or set your own manually below.">Your Risk Profile<span class="help-icon">?</span></span></label>
+                                <select id="riskProfile" class="input-field"><option value="custom">Custom</option><option value="conservative">Conservative</option><option value="moderate" selected>Moderate</option><option value="aggressive">Aggressive</option></select>
+                            </div>
+                            <div>
+                                <label for="allocationSlider" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The percentage of your annual savings to allocate to your Real Estate 'War Chest' vs. your Stock Portfolio.">Annual Savings Allocation<span class="help-icon">?</span></span></label>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <span class="text-sm font-semibold text-blue-600">RE</span>
+                                    <input type="range" id="allocationSlider" min="0" max="100" value="75" class="w-full">
+                                    <span class="text-sm font-semibold text-orange-600">Stocks</span>
+                                </div>
+                                <div class="flex justify-between text-xs font-bold mt-1">
+                                    <span id="reAllocationLabel" class="text-blue-600">75%</span>
+                                    <span id="stockAllocationLabel" class="text-orange-600">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <details>
+                        <summary><span class="tooltip-container" data-tooltip="Import properties you already own from your saved PropertyLens scenarios to establish the starting point for your simulation.">Starting Portfolio<span class="help-icon">?</span></span><svg class="details-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></summary>
+                        <div class="details-content">
+                            <p class="text-sm text-slate-600 mb-4">Add your existing properties by importing scenarios you've saved in PropertyLens.</p>
+                            <button id="import-btn" class="w-full p-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors">Import from PropertyLens</button>
+                            <p id="import-status" class="text-xs text-slate-500 text-center mt-2"></p>
+                            <div id="import-list" class="mt-4 space-y-3 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary><span class="tooltip-container" data-tooltip="Define your strategy for acquiring new properties in the future.">Future Acquisitions Plan<span class="help-icon">?</span></span><svg class="details-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></summary>
+                        <div class="details-content space-y-6">
+                             <div>
+                                <h3 class="font-semibold text-slate-800"><span class="tooltip-container" data-tooltip="How often you plan to purchase a new property, assuming you have sufficient capital in your Real Estate War Chest.">Acquisition Cadence<span class="help-icon">?</span></span></h3>
+                                <div class="flex items-center gap-2 mt-2 text-sm">
+                                    <span>Buy 1 property every</span>
+                                    <input type="text" id="acquisitionFrequency" value="2" class="w-16 p-2 rounded-md bg-slate-100 border-slate-300 border text-center">
+                                    <span>years.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-800"><span class="tooltip-container" data-tooltip="Percentage of your portfolio's positive after-tax cash flow that is added back to your 'Real Estate War Chest' for future acquisitions.">Cash Flow Reinvestment %<span class="help-icon">?</span></span></h3>
+                                <input type="text" id="reinvestmentRate" value="100" class="input-field">
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-800"><span class="tooltip-container" data-tooltip="The profile of a typical property you plan to acquire in the future.">Deal Archetype<span class="help-icon">?</span></span></h3>
+                                <div id="archetype-container" class="border border-slate-200 rounded-lg p-4 mt-2">
+                                    <input type="text" id="archetypeName" value="Cash Flow Duplex" class="font-semibold text-lg w-full mb-2 border-0 p-1 -ml-1 focus:ring-2 focus:ring-blue-200 rounded">
+                                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                        <div><label class="font-medium">Purchase Price</label> <input type="text" id="archetypePrice" value="$400,000" class="input-field"></div>
+                                        <div><label class="font-medium">Down Pmt %</label> <input type="text" id="archetypeDp" value="25" class="input-field"></div>
+                                        <div><label class="font-medium">Interest Rate %</label> <input type="text" id="archetypeRate" value="6.5" class="input-field"></div>
+                                        <div><label class="font-medium">Loan Term</label> <input type="text" id="archetypeTerm" value="30" class="input-field"></div>
+                                        <div><label class="font-medium">Monthly Rent</label> <input type="text" id="archetypeRent" value="$3,200" class="input-field"></div>
+                                        <div><label class="font-medium">Expenses % of Rent</label> <input type="text" id="archetypeExpenses" value="35" class="input-field"></div>
+                                        <div class="col-span-2"><label class="font-medium">Growth Rates % (Value/Inc/Exp)</label> <input type="text" id="archetypeGrowth" value="3/3/2.5" class="input-field"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </aside>
+            
+            <section class="lg:col-span-2 space-y-8">
+                <div id="portfolio-showdown" class="bg-white p-6 rounded-xl shadow-sm border-2 border-blue-500">
+                    <h2 class="text-2xl font-bold text-slate-900">Your Financial Independence Dashboard</h2>
+                    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div><div class="bg-slate-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-slate-600"><span class="tooltip-container justify-center" data-tooltip="The year your portfolio's after-tax passive income is projected to exceed your inflation-adjusted target income.">Freedom Year<span class="help-icon">?</span></span></p><p data-output="yearsToGoal" class="text-3xl font-bold text-blue-600">-</p></div></div>
+                        <div><div class="bg-slate-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-slate-600"><span class="tooltip-container justify-center" data-tooltip="The total number of properties (existing + future) in your portfolio when you reach your goal.">Total Properties<span class="help-icon">?</span></span></p><p data-output="propertiesAcquired" class="text-3xl font-bold text-slate-800">-</p></div></div>
+                        <div><div class="bg-green-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-green-800"><span class="tooltip-container justify-center" data-tooltip="The total projected equity across all your real estate properties in your 'Freedom' year.">RE Net Worth<span class="help-icon">?</span></span></p><p data-output="reNetWorth" class="text-3xl font-bold text-green-700">-</p></div></div>
+                        <div><div class="bg-orange-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-orange-800"><span class="tooltip-container justify-center" data-tooltip="The projected value of your stock portfolio if all designated savings were invested in the S&P 500 instead.">Stock Portfolio<span class="help-icon">?</span></span></p><p data-output="sp500NetWorth" class="text-3xl font-bold text-orange-700">-</p></div></div>
+                        <div class="col-span-2 md:col-span-2"><div class="bg-slate-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-slate-600"><span class="tooltip-container justify-center" data-tooltip="The total out-of-pocket cash (initial capital + annual savings + down payments from cash flow) invested into your real estate portfolio over the entire period.">Total Cash Invested (RE)<span class="help-icon">?</span></span></p><p data-output="totalCashInvested" class="text-3xl font-bold text-slate-800">-</p></div></div>
+                        <div class="col-span-2 md:col-span-2"><div class="bg-slate-50 p-4 rounded-lg h-full"><p class="text-sm font-medium text-slate-600"><span class="tooltip-container justify-center" data-tooltip="The Internal Rate of Return (IRR) of your entire real estate strategy, accounting for all cash inflows and outflows over time. This is the 'true' annualized return of your strategy.">Portfolio IRR<span class="help-icon">?</span></span></p><p data-output="portfolioIRR" class="text-3xl font-bold text-slate-800">-</p></div></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-900">Net Worth Trajectory</h2>
+                    <div class="h-80"><canvas id="netWorthChart"></canvas></div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-900">Path to Financial Independence</h2>
+                    <div class="h-80"><canvas id="incomeChart"></canvas></div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-900">Capital Composition Over Time</h2>
+                    <div class="h-80"><canvas id="compositionChart"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-slate-900 mb-4">Annual Breakdown</h2>
+                    <div class="overflow-x-auto">
+                        <table id="annual-breakdown-table" class="w-full text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-600 uppercase">
+                                <tr>
+                                    <th class="p-3">Year</th><th class="p-3 text-right">Properties</th><th class="p-3 text-right">RE Equity</th>
+                                    <th class="p-3 text-right">Annual RE Cash Flow</th><th class="p-3 text-right">Stock Portfolio</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="global-tooltip"></div>
+    </main>
+
+<script>
+class Property {
+    constructor(propDataSource, purchaseYear, age = 0) {
+        const u = EquityEngine.utils;
+        this.purchaseYear = purchaseYear;
+        this.age = age;
+        
+        if (propDataSource.grossMonthlyRent && propDataSource.purchasePrice) {
+            const annualRent = u.parseNumber(propDataSource.grossMonthlyRent) * 12;
+            const opExCosts = (u.parseNumber(propDataSource.propTaxes) * 12 + u.parseNumber(propDataSource.insurance) * 12 + u.parseNumber(propDataSource.hoa) * 12);
+            const opExPcts = (annualRent * (u.parseNumber(propDataSource.maintenancePct)/100 + u.parseNumber(propDataSource.managementPct)/100 + u.parseNumber(propDataSource.capExPct)/100 + u.parseNumber(propDataSource.vacancyPct)/100));
+            this.expensePct = annualRent > 0 ? (opExCosts + opExPcts) / annualRent : 0;
+            this.purchasePrice = u.parseNumber(propDataSource.purchasePrice);
+            this.loanAmount = this.purchasePrice * (1 - u.parseNumber(propDataSource.downPayment)/100);
+            this.interestRate = u.parseNumber(propDataSource.interestRate)/100;
+            this.loanTerm = u.parseNumber(propDataSource.loanTerm);
+            this.grossRent = annualRent;
+            this.valueGrowth = u.parseNumber(propDataSource.annualValueGrowth)/100;
+            this.incomeGrowth = u.parseNumber(propDataSource.annualIncomeGrowth)/100;
+            this.expenseGrowth = u.parseNumber(propDataSource.annualExpenseGrowth)/100;
+        } else {
+             this.purchasePrice = propDataSource.purchasePrice; this.loanAmount = this.purchasePrice * (1 - propDataSource.downPaymentPct);
+             this.interestRate = propDataSource.interestRate; this.loanTerm = propDataSource.loanTerm; this.grossRent = propDataSource.grossMonthlyRent * 12;
+             this.expensePct = propDataSource.expensePct; this.valueGrowth = propDataSource.valueGrowth; this.incomeGrowth = propDataSource.incomeGrowth; this.expenseGrowth = propDataSource.expenseGrowth;
+        }
+        
+        this.value = this.purchasePrice;
+        this.debt = this.loanAmount;
+
+        for (let y = 0; y < this.age; y++) { this.update(y, true); }
+    }
+
+    update(currentYear, isFastForward = false) {
+        this.age = currentYear - this.purchaseYear;
+        if (!isFastForward && this.age > 0) {
+            this.value *= (1 + this.valueGrowth);
+            this.grossRent *= (1 + this.incomeGrowth);
+        }
+        
+        this.noi = this.grossRent * (1 - this.expensePct);
+        this.annualPayment = EquityEngine.calculator._calculateAnnualPayment(this.debt, this.interestRate, this.loanTerm - this.age);
+        this.interest = this.debt * this.interestRate;
+        this.principal = this.annualPayment > 0 ? this.annualPayment - this.interest : 0;
+        if (this.debt > 0) this.debt -= this.principal;
+        if (this.debt < 0) this.debt = 0;
+        this.depreciation = (this.purchasePrice * 0.8) / 27.5;
+    }
+}
+
+const EquityEngine = {
+    state: {}, dom: {}, charts: {}, _debounceTimer: null,
+
+    utils: {
+        parseNumber: str => {
+            if (typeof str === 'number') return str;
+            return parseFloat(String(str || '').replace(/[$,%]/g, '')) || 0;
+        },
+        formatCurrency: (num, compact = false) => {
+            const value = Number(num);
+            if (isNaN(value)) return '$0';
+            if (compact) {
+                if (Math.abs(value) >= 1_000_000_000) return '$' + (value / 1_000_000_000).toFixed(1) + 'B';
+                if (Math.abs(value) >= 1_000_000) return '$' + (value / 1_000_000).toFixed(1) + 'M';
+                if (Math.abs(value) >= 100_000) return '$' + (value / 1_000).toFixed(0) + 'K';
+            }
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+        },
+        formatPercent: (num) => isNaN(num) ? 'N/A' : `${(num * 100).toFixed(1)}%`,
+    },
+
+    init() { this.cacheDom(); this.bindEvents(); this.loadState(); this.runSimulation(); },
+
+    cacheDom() {
+        const query = (selector) => document.querySelector(selector);
+        this.dom = {
+            appName: query('.app-name'),
+            currentIncome: query('#currentIncome'), annualSavings: query('#annualSavings'), initialCapital: query('#initialCapital'), taxRate: query('#taxRate'), incomeReplacement: query('#incomeReplacement'), inflationRate: query('#inflationRate'), coastFireIncome: query('#coastFireIncome'),
+            riskProfile: query('#riskProfile'), allocationSlider: query('#allocationSlider'), reAllocationLabel: query('#reAllocationLabel'), stockAllocationLabel: query('#stockAllocationLabel'),
+            reinvestmentRate: query('#reinvestmentRate'), sp500Return: query('#sp500Return'),
+            archetypeName: query('#archetypeName'), archetypePrice: query('#archetypePrice'), archetypeDp: query('#archetypeDp'), archetypeRate: query('#archetypeRate'), archetypeTerm: query('#archetypeTerm'), archetypeRent: query('#archetypeRent'), archetypeExpenses: query('#archetypeExpenses'), archetypeGrowth: query('#archetypeGrowth'),
+            acquisitionFrequency: query('#acquisitionFrequency'),
+            importBtn: query('#import-btn'), importStatus: query('#import-status'), importList: query('#import-list'),
+            yearsToGoal: query('[data-output="yearsToGoal"]'), propertiesAcquired: query('[data-output="propertiesAcquired"]'), totalCashInvested: query('[data-output="totalCashInvested"]'), reNetWorth: query('[data-output="reNetWorth"]'), sp500NetWorth: query('[data-output="sp500NetWorth"]'), portfolioIRR: query('[data-output="portfolioIRR"]'),
+            netWorthChart: query('#netWorthChart'), incomeChart: query('#incomeChart'), compositionChart: query('#compositionChart'),
+            annualTableBody: query('#annual-breakdown-table tbody'),
+            globalTooltip: query('#global-tooltip'),
+        };
+    },
+
+    bindEvents() {
+        document.querySelector('aside').addEventListener('input', (e) => {
+            if (e.target.id === 'riskProfile') { this.ui.updateAllocationFromProfile(e.target.value); }
+            if (e.target.id === 'allocationSlider') { this.ui.updateAllocationLabels(e.target.value); }
+            clearTimeout(this._debounceTimer);
+            this._debounceTimer = setTimeout(() => this.runSimulation(), 400);
+        });
+        this.dom.importBtn.addEventListener('click', () => this.handleImport());
+        document.body.addEventListener('mouseover', e => {
+            const container = e.target.closest('.tooltip-container[data-tooltip]');
+            if (container && this.dom.globalTooltip) { this.dom.globalTooltip.innerHTML = container.dataset.tooltip; this.dom.globalTooltip.classList.add('visible'); this.ui.positionTooltip(container); }
+        });
+        document.body.addEventListener('mouseout', e => {
+            if (e.target.closest('.tooltip-container[data-tooltip]') && this.dom.globalTooltip) { this.dom.globalTooltip.classList.remove('visible'); }
+        });
+    },
+    
+    getInputs() {
+        const u = this.utils; const dom = this.dom;
+        const getVal = (el, isPct = false) => { if (!el) return 0; const val = u.parseNumber(el.value); return isPct ? val / 100 : val; };
+
+        const existingPortfolio = Array.from(dom.importList.querySelectorAll('.imported-item'))
+            .filter(item => item.querySelector('input[type="checkbox"]').checked)
+            .map(item => ({ id: item.dataset.id, data: JSON.parse(item.dataset.scenario), yearsOwned: getVal(item.querySelector('input[type="number"]')) }));
+            
+        const growthRates = dom.archetypeGrowth.value.split('/').map(u.parseNumber);
+        this.state = {
+            currentIncome: getVal(dom.currentIncome), annualSavings: getVal(dom.annualSavings), initialCapital: getVal(dom.initialCapital), 
+            taxRate: getVal(dom.taxRate, true), incomeReplacement: getVal(dom.incomeReplacement, true), inflationRate: getVal(dom.inflationRate, true), coastFireIncome: getVal(dom.coastFireIncome),
+            riskProfile: dom.riskProfile.value, allocation: getVal(dom.allocationSlider, true),
+            reinvestmentRate: getVal(dom.reinvestmentRate, true), sp500Return: getVal(dom.sp500Return, true),
+            acquisitionFrequency: getVal(dom.acquisitionFrequency),
+            archetype: {
+                name: dom.archetypeName.value, purchasePrice: getVal(dom.archetypePrice), downPaymentPct: getVal(dom.archetypeDp, true), 
+                interestRate: getVal(dom.archetypeRate, true), loanTerm: getVal(dom.archetypeTerm),
+                grossMonthlyRent: getVal(dom.archetypeRent), expensePct: getVal(dom.archetypeExpenses, true), 
+                valueGrowth: (growthRates[0] || 0) / 100, incomeGrowth: (growthRates[1] || 0) / 100, expenseGrowth: (growthRates[2] || 0) / 100,
+            },
+            existingPortfolio,
+        };
+        this.saveState();
+    },
+    
+    handleImport() {
+        try {
+            const scenarios = JSON.parse(localStorage.getItem('realEstateScenarios_v3') || '[]');
+            if (scenarios.length === 0) { this.dom.importStatus.textContent = 'No PropertyLens scenarios found.'; return; }
+            this.dom.importStatus.textContent = `Found ${scenarios.length} scenarios. Select properties to include.`;
+            this.ui.renderImportedScenarios(scenarios, this.state.existingPortfolio);
+            this.runSimulation();
+        } catch (e) { this.dom.importStatus.textContent = 'Error reading PropertyLens scenarios.'; console.error(e); }
+    },
+
+    saveState() {
+        const stateToSave = { ...this.state };
+        stateToSave.existingPortfolio = Array.from(this.dom.importList.querySelectorAll('.imported-item')).map(item => ({
+            id: item.dataset.id, scenario: JSON.parse(item.dataset.scenario),
+            checked: item.querySelector('input[type="checkbox"]').checked,
+            yearsOwned: this.utils.parseNumber(item.querySelector('input[type="number"]').value)
+        }));
+        localStorage.setItem('EquityEngineState', JSON.stringify(stateToSave));
+    },
+
+    loadState() {
+        const savedStateJSON = localStorage.getItem('EquityEngineState');
+        if (savedStateJSON) {
+            this.state = JSON.parse(savedStateJSON);
+            this.ui.populateInputs(this.state);
+            if (this.state.existingPortfolio && this.state.existingPortfolio.length > 0) {
+                this.ui.renderImportedScenariosFromState(this.state.existingPortfolio);
+            }
+        }
+    },
+
+    runSimulation() { this.getInputs(); if (this.state.currentIncome <= 0) return; this.ui.update(this.calculator.run(this.state)); },
+
+    calculator: {
+        run(state) {
+            const annualBreakdown = []; let portfolio = [];
+            state.existingPortfolio.forEach(existing => portfolio.push(new Property(existing.data, 0, existing.yearsOwned)));
+            
+            let reWarChest = state.initialCapital * state.allocation;
+            let stockPortfolio = state.initialCapital * (1 - state.allocation);
+            let goalMet = false, finalYear = 0;
+            let targetIncome = state.currentIncome;
+            const archetype = state.archetype;
+            const downPaymentAmount = archetype.purchasePrice * archetype.downPaymentPct;
+            
+            const reCashFlows = [- (state.initialCapital * state.allocation)];
+            portfolio.forEach(p => { reCashFlows[0] -= (p.purchasePrice - p.loanAmount); });
+            
+            let totalCashInvestedRE = -reCashFlows[0];
+
+            for (let year = 1; year <= 50; year++) {
+                let cashFlowFromPrevYear = year > 1 ? annualBreakdown[year - 2].afterTaxCashFlow : 0;
+                
+                const savingsToRE = state.annualSavings * state.allocation;
+                const savingsToStocks = state.annualSavings * (1 - state.allocation);
+                reWarChest += savingsToRE;
+                stockPortfolio = stockPortfolio * (1 + state.sp500Return) + savingsToStocks;
+                if (cashFlowFromPrevYear > 0) reWarChest += cashFlowFromPrevYear * state.reinvestmentRate;
+                reCashFlows[year] = -savingsToRE;
+
+                if (state.acquisitionFrequency > 0 && year % state.acquisitionFrequency === 0) {
+                    if (reWarChest >= downPaymentAmount) {
+                        reWarChest -= downPaymentAmount; totalCashInvestedRE += downPaymentAmount;
+                        portfolio.push(new Property(archetype, year));
+                        reCashFlows[year] -= downPaymentAmount;
+                    }
+                }
+
+                let totalPortfolioValue = 0, totalPortfolioDebt = 0, totalPortfolioNOI = 0, totalInterest = 0, totalDepreciation = 0, totalPrincipalPaid = 0;
+                portfolio.forEach(prop => {
+                    prop.update(year);
+                    totalPortfolioValue += prop.value; totalPortfolioDebt += prop.debt > 0 ? prop.debt : 0; totalPortfolioNOI += prop.noi;
+                    totalInterest += prop.interest; totalPrincipalPaid += prop.principal; totalDepreciation += prop.depreciation;
+                });
+                
+                const portfolioEquity = totalPortfolioValue - totalPortfolioDebt;
+                const taxableIncome = totalPortfolioNOI - totalInterest - totalDepreciation;
+                const taxImpact = taxableIncome * state.taxRate;
+                const afterTaxCashFlow = totalPortfolioNOI - (totalInterest + totalPrincipalPaid) - taxImpact;
+                if (reCashFlows[year]) reCashFlows[year] += afterTaxCashFlow; else reCashFlows[year] = afterTaxCashFlow;
+                
+                annualBreakdown.push({ year, properties: portfolio.length, portfolioEquity, afterTaxCashFlow, stockPortfolio, reWarChest });
+                
+                const fiTarget = targetIncome - state.coastFireIncome;
+                if (!goalMet && afterTaxCashFlow >= fiTarget) { goalMet = true; finalYear = year; }
+                targetIncome *= (1 + state.inflationRate);
+            }
+            
+            const fiYear = goalMet ? finalYear : 50;
+            const fiYearData = annualBreakdown[fiYear - 1];
+            
+            const finalPortfolioValue = portfolio.reduce((sum, p) => sum + p.value, 0);
+            reCashFlows[fiYear] = (reCashFlows[fiYear] || 0) + finalPortfolioValue - portfolio.reduce((sum, p) => sum + p.debt, 0);
+            const portfolioIRR = this._calculateIRR(reCashFlows.slice(0, fiYear + 1));
+            
+            return {
+                verdict: { yearsToGoal: goalMet ? finalYear : '>50', propertiesAcquired: fiYearData.properties, reNetWorth: fiYearData.portfolioEquity, sp500NetWorth: fiYearData.stockPortfolio, totalCashInvested: totalCashInvestedRE, portfolioIRR },
+                annualBreakdown, targetIncome: state.currentIncome, inflation: state.inflationRate, coastFireIncome: state.coastFireIncome
+            };
+        },
+        _calculateAnnualPayment: (pv, rate, nper) => {
+            if (nper <= 0 || rate <= 0 || pv <= 0) return 0; const monthlyRate = rate / 12; const nperMonths = nper * 12;
+            if (Math.abs(monthlyRate) < 1e-9) return pv / nper;
+            const monthlyPayment = pv * monthlyRate * Math.pow(1 + monthlyRate, nperMonths) / (Math.pow(1 + monthlyRate, nperMonths) - 1);
+            return monthlyPayment * 12;
+        },
+        _calculateIRR(cashflows, guess = 0.1) {
+            const maxIterations = 100, tolerance = 1e-7; let irr = guess;
+            for (let i = 0; i < maxIterations; i++) {
+                let npv = 0, derivative = 0;
+                cashflows.forEach((cf, t) => { npv += cf / Math.pow(1 + irr, t); if (t > 0) derivative -= t * cf / Math.pow(1 + irr, t + 1); });
+                if (Math.abs(npv) < tolerance) return irr; if (derivative === 0) return NaN;
+                irr -= npv / derivative;
+            }
+            return NaN;
+        }
+    },
+
+    ui: {
+        update(results) { this.updateVerdict(results.verdict); this.updateTable(results.annualBreakdown); this.updateAllCharts(results); },
+        populateInputs(state) {
+            const dom = EquityEngine.dom; if (!state) return;
+            const setVal = (el, val, isPct = false) => { if (el) el.value = isPct ? (val || 0) * 100 : (val || ''); };
+            setVal(dom.currentIncome, state.currentIncome); setVal(dom.annualSavings, state.annualSavings); setVal(dom.initialCapital, state.initialCapital);
+            setVal(dom.taxRate, state.taxRate, true); setVal(dom.incomeReplacement, state.incomeReplacement, true); setVal(dom.inflationRate, state.inflationRate, true);
+            setVal(dom.coastFireIncome, state.coastFireIncome); setVal(dom.reinvestmentRate, state.reinvestmentRate, true); setVal(dom.sp500Return, state.sp500Return, true);
+            setVal(dom.acquisitionFrequency, state.acquisitionFrequency);
+            if(dom.riskProfile) dom.riskProfile.value = state.riskProfile || 'moderate';
+            if(dom.allocationSlider) dom.allocationSlider.value = (state.allocation || 0.75) * 100;
+            this.updateAllocationLabels((state.allocation || 0.75) * 100);
+
+            if (state.archetype) {
+                const a = state.archetype;
+                setVal(dom.archetypeName, a.name); setVal(dom.archetypePrice, a.purchasePrice); setVal(dom.archetypeDp, a.downPaymentPct, true);
+                setVal(dom.archetypeRate, a.interestRate, true); setVal(dom.archetypeTerm, a.loanTerm); setVal(dom.archetypeRent, a.grossMonthlyRent); setVal(dom.archetypeExpenses, a.expensePct, true);
+                dom.archetypeGrowth.value = `${(a.valueGrowth||0)*100}/${(a.incomeGrowth||0)*100}/${(a.expenseGrowth||0)*100}`;
+            }
+        },
+        updateAllocationLabels(val) {
+            if(this.updateEl('reAllocationLabel', `${val}%`)) EquityEngine.dom.riskProfile.value = 'custom';
+            this.updateEl('stockAllocationLabel', `${100-val}%`);
+        },
+        updateAllocationFromProfile(profile) {
+            const allocationMap = { conservative: 25, moderate: 50, aggressive: 75 };
+            const allocation = allocationMap[profile];
+            if (allocation !== undefined) {
+                EquityEngine.dom.allocationSlider.value = allocation;
+                this.updateAllocationLabels(allocation);
+            }
+        },
+        renderImportedScenariosFromState(savedPortfolio) {
+             let html = savedPortfolio.map(item => this._createScenarioCardHTML(item.scenario, item.id, item.checked, item.yearsOwned)).join('');
+             const list = EquityEngine.dom.importList; list.innerHTML = html; this._bindCardEvents(list);
+        },
+        renderImportedScenarios(scenarios, savedSelections = []) {
+            let html = scenarios.map(s => {
+                const saved = savedSelections.find(sel => sel.id === s.id);
+                const isChecked = saved ? saved.checked : true;
+                const yearsOwned = saved ? saved.yearsOwned : 0;
+                return this._createScenarioCardHTML(s.data, s.id, isChecked, yearsOwned);
+            }).join('');
+            const list = EquityEngine.dom.importList; list.innerHTML = html; this._bindCardEvents(list);
+        },
+        _createScenarioCardHTML(sData, id, isChecked, yearsOwned) {
+            const u = EquityEngine.utils;
+            return `
+                <div class="imported-item border border-slate-300 p-3 rounded-lg bg-white shadow-sm" data-id="${id}" data-scenario='${JSON.stringify(sData)}'>
+                    <div class="flex items-start justify-between"><label class="flex items-start gap-3 font-semibold text-slate-800 cursor-pointer">
+                        <input type="checkbox" class="h-5 w-5 mt-1 rounded border-slate-400 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                        <div><span>${sData.name || 'Imported Property'}</span><div class="text-xs font-normal text-slate-500">${u.formatCurrency(sData.purchasePrice, 0)} | ${sData.downPayment}% Down</div></div></label>
+                        <button class="remove-prop-btn text-red-500 hover:text-red-700 text-xs font-bold">REMOVE</button></div>
+                    <div class="flex items-center gap-2 text-sm mt-2 pl-8"><label>Years Owned:</label><input type="number" value="${yearsOwned}" min="0" max="50" class="w-16 p-1 text-center border rounded-md bg-slate-100"></div></div>`;
+        },
+        _bindCardEvents(list) {
+            list.querySelectorAll('input, .remove-prop-btn').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('remove-prop-btn')) { e.target.closest('.imported-item').remove(); }
+                    EquityEngine.runSimulation();
+                });
+            });
+        },
+        updateVerdict(verdict) {
+            const u = EquityEngine.utils;
+            this.updateEl('yearsToGoal', verdict.yearsToGoal); this.updateEl('propertiesAcquired', verdict.propertiesAcquired);
+            this.updateEl('reNetWorth', u.formatCurrency(verdict.reNetWorth, true)); this.updateEl('sp500NetWorth', u.formatCurrency(verdict.sp500NetWorth, true));
+            this.updateEl('totalCashInvested', u.formatCurrency(verdict.totalCashInvested, true));
+            this.updateEl('portfolioIRR', u.formatPercent(verdict.portfolioIRR));
+        },
+        updateEl(key, value) { const el = EquityEngine.dom[key]; if(el) el.textContent = value; return el; },
+        updateTable(annualBreakdown) {
+            const u = EquityEngine.utils; let tbodyHtml = '';
+            annualBreakdown.forEach(yearData => { tbodyHtml += `<tr class="font-mono ${yearData.year % 2 === 0 ? 'bg-slate-50' : ''}"><td class="p-3 font-semibold">${yearData.year}</td><td class="p-3 text-right">${yearData.properties}</td><td class="p-3 text-right text-green-600">${u.formatCurrency(yearData.portfolioEquity, 0)}</td><td class="p-3 text-right text-blue-600">${u.formatCurrency(yearData.afterTaxCashFlow, 0)}</td><td class="p-3 text-right text-orange-600">${u.formatCurrency(yearData.stockPortfolio, 0)}</td></tr>`; });
+            EquityEngine.dom.annualTableBody.innerHTML = tbodyHtml;
+        },
+        updateAllCharts(results) {
+            const u = EquityEngine.utils;
+            const { annualBreakdown, inflation, coastFireIncome } = results;
+            const labels = annualBreakdown.map(d => `Y${d.year}`);
+            const targetIncomeLine = annualBreakdown.map((d, i) => (EquityEngine.state.currentIncome) * Math.pow(1 + inflation, i));
+            
+            const chartConfigs = [
+                { id: 'netWorthChart', data: { labels, datasets: [ { label: 'RE Equity', data: annualBreakdown.map(d => d.portfolioEquity), borderColor: '#2563eb', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3 }, { label: 'Stock Portfolio', data: annualBreakdown.map(d => d.stockPortfolio), borderColor: '#f97316', tension: 0.3 }, ]}, options: { scales: { y: { title: { display: true, text: 'Net Worth ($)'}, ticks: { callback: v => u.formatCurrency(v, true) }}}}},
+                { id: 'incomeChart', data: { labels, datasets: [ { label: 'RE Cash Flow', data: annualBreakdown.map(d => d.afterTaxCashFlow), borderColor: '#16a34a', borderWidth: 3 }, { label: 'Target Income (Inflation Adj.)', data: targetIncomeLine, borderColor: '#dc2626', borderDash: [5, 5], pointRadius: 0 }, { label: 'Coast FIRE Income', data: Array(annualBreakdown.length).fill(coastFireIncome), borderColor: '#65a30d', borderDash: [2, 2], pointRadius: 0 }, ]}, options: { scales: { y: { title: { display: true, text: 'Annual Cash Flow ($)'}, ticks: { callback: v => u.formatCurrency(v, true) }}}}},
+                { id: 'compositionChart', type: 'bar', data: { labels, datasets: [ { label: 'RE Equity', data: annualBreakdown.map(d => d.portfolioEquity), backgroundColor: 'rgba(22, 163, 74, 0.7)' }, { label: 'Stock Portfolio', data: annualBreakdown.map(d => d.stockPortfolio), backgroundColor: 'rgba(234, 88, 12, 0.7)' }, { label: 'RE War Chest', data: annualBreakdown.map(d => d.reWarChest), backgroundColor: 'rgba(59, 130, 246, 0.7)' }, ]}, options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Total Net Worth ($)'}, ticks: { callback: v => u.formatCurrency(v, true) }}}}},
+            ];
+            
+            chartConfigs.forEach(cfg => {
+                if (EquityEngine.charts[cfg.id]) EquityEngine.charts[cfg.id].destroy();
+                const baseOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, interaction: { mode: 'index', intersect: false } };
+                EquityEngine.charts[cfg.id] = new Chart(document.getElementById(cfg.id), { type: cfg.type || 'line', data: cfg.data, options: { ...baseOptions, ...cfg.options } });
+            });
+        },
+        positionTooltip(container) {
+            const tooltipEl = EquityEngine.dom.globalTooltip; if (!tooltipEl) return;
+            const iconRect = container.getBoundingClientRect();
+            let top = iconRect.top - tooltipEl.offsetHeight - 8, left = iconRect.left + (iconRect.width / 2) - (tooltipEl.offsetWidth / 2);
+            if(top < 10) top = iconRect.bottom + 8; if(left < 10) left = 10;
+            if(left + tooltipEl.offsetWidth > window.innerWidth) left = window.innerWidth - tooltipEl.offsetWidth - 10;
+            tooltipEl.style.top = `${top}px`; tooltipEl.style.left = `${left}px`;
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => EquityEngine.init());
+</script>
+</body>
+</html>
