@@ -10,6 +10,7 @@
     <style>
         @import url('https://rsms.me/inter/inter.css');
         html { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        /* Style updates to match PropertyLens */
         details { border: 1px solid #e2e8f0; border-radius: 0.75rem; transition: background-color 0.2s; }
         details:not(:last-child) { margin-bottom: 1rem; }
         details summary { padding: 1rem; }
@@ -19,6 +20,7 @@
         details[open] summary .arrow { transform: rotate(90deg); }
         .input-field { margin-top: 0.25rem; width: 100%; border-radius: 0.375rem; background-color: #f8fafc; border: 1px solid #cbd5e1; transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; padding-top: 0.6rem; padding-bottom: 0.6rem; }
         .input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); outline: none; background-color: #fff; }
+
         .tooltip-container { display: inline-flex; align-items: center; }
         .help-icon { display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 9999px; background-color: #e2e8f0; color: #475569; font-size: 0.7rem; font-weight: bold; cursor: pointer; margin-left: 0.3rem; transition: background-color 0.2s; }
         .help-icon:hover { background-color: #cbd5e1; }
@@ -48,7 +50,7 @@
             
             <aside class="lg:col-span-1">
                 <div class="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-                    <details open>
+                     <details open>
                         <summary class="flex items-center justify-between text-xl font-semibold text-slate-800 cursor-pointer list-none">
                             <span class="tooltip-container" data-tooltip="Define your current financial situation and long-term retirement goals.">Personal Finances & Goals<span class="help-icon">?</span></span>
                             <div class="arrow w-5 h-5 mr-3 text-slate-500 transition-transform">
@@ -58,11 +60,16 @@
                         <div class="details-content mt-4 space-y-4">
                             <div><label for="currentIncome" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Your total annual income from your primary job(s) before taxes. Used to calculate your savings and FI target.">Current W2 Income ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="currentIncome" value="$150,000" class="input-field"></div>
                             <div><label for="annualSavings" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The total amount of cash you set aside each year for all investments (both real estate and stocks).">Total Annual Savings ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="annualSavings" value="$40,000" class="input-field"></div>
-                            <div><label for="initialCapital" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The lump sum of cash you have available to invest right now (Year 0). This will be allocated based on your strategy.">Initial Investment Capital<span class="help-icon">?</span></span></label><input type="text" id="initialCapital" value="$100,000" class="input-field"></div>
+                            <div><label for="initialStockPortfolio" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The current value of your existing stock/index fund portfolio. This is the starting point for the S&P 500 side of the simulation.">Initial Stock Portfolio<span class="help-icon">?</span></span></label><input type="text" id="initialStockPortfolio" value="$250,000" class="input-field"></div>
+                            <div><label for="initialCapital" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The lump sum of NEW cash you have available to invest right now (Year 0). This will be allocated based on your strategy.">New Investment Capital<span class="help-icon">?</span></span></label><input type="text" id="initialCapital" value="$50,000" class="input-field"></div>
                             <div><label for="coastFireIncome" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The annual income you plan to earn from part-time or low-stress work after leaving your main W2 job. This 'Coast FIRE' income reduces the passive income needed from your portfolio.">Post-W2 'Coast FIRE' Income ($/yr)<span class="help-icon">?</span></span></label><input type="text" id="coastFireIncome" value="$20,000" class="input-field"></div>
-                            <div><label for="inflationRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The long-term expected annual inflation rate. This is used to adjust your FI Target Income over time.">Assumed Inflation (%)<span class="help-icon">?</span></span></label><input type="text" id="inflationRate" value="2.5" class="input-field"></div>
-                             <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label for="simulationHorizon" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The number of years to run the simulation.">Simulation Horizon (Yrs)<span class="help-icon">?</span></span></label><input type="text" id="simulationHorizon" value="40" class="input-field"></div>
+                                <div><label for="inflationRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The long-term expected annual inflation rate. This is used to adjust your FI Target Income over time.">Inflation %<span class="help-icon">?</span></span></label><input type="text" id="inflationRate" value="2.5" class="input-field"></div>
+                            </div>
+                             <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200">
                                 <div><label for="taxRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Your blended marginal tax rate (Federal + State). Used to calculate after-tax cash flow.">Marginal Tax %<span class="help-icon">?</span></span></label><input type="text" id="taxRate" value="32" class="input-field"></div>
+                                <div><label for="capitalGainsTaxRate" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="Your blended long-term capital gains tax rate. Used for calculating after-tax net worth on a theoretical sale.">Capital Gains %<span class="help-icon">?</span></span></label><input type="text" id="capitalGainsTaxRate" value="15" class="input-field"></div>
                                 <div><label for="sp500Return" class="text-sm font-medium"><span class="tooltip-container" data-tooltip="The expected annual return for the S&P 500. Used to model the growth of your stock portfolio.">S&P 500 Return %<span class="help-icon">?</span></span></label><input type="text" id="sp500Return" value="8" class="input-field"></div>
                             </div>
                         </div>
@@ -275,7 +282,7 @@ const EquityEngine = {
         const query = (selector) => document.querySelector(selector);
         this.dom = {
             appName: query('.app-name'),
-            currentIncome: query('#currentIncome'), annualSavings: query('#annualSavings'), initialCapital: query('#initialCapital'), taxRate: query('#taxRate'), capitalGainsTaxRate: query('#capitalGainsTaxRate'), incomeReplacement: query('#incomeReplacement'), inflationRate: query('#inflationRate'), coastFireIncome: query('#coastFireIncome'),
+            currentIncome: query('#currentIncome'), annualSavings: query('#annualSavings'), initialStockPortfolio: query('#initialStockPortfolio'), initialCapital: query('#initialCapital'), taxRate: query('#taxRate'), capitalGainsTaxRate: query('#capitalGainsTaxRate'), incomeReplacement: query('#incomeReplacement'), inflationRate: query('#inflationRate'), coastFireIncome: query('#coastFireIncome'), simulationHorizon: query('#simulationHorizon'),
             riskProfile: query('#riskProfile'), allocationSlider: query('#allocationSlider'), reAllocationLabel: query('#reAllocationLabel'), stockAllocationLabel: query('#stockAllocationLabel'),
             reinvestmentRate: query('#reinvestmentRate'), sp500Return: query('#sp500Return'),
             archetypeName: query('#archetypeName'), archetypePrice: query('#archetypePrice'), archetypeDp: query('#archetypeDp'), archetypeRate: query('#archetypeRate'), archetypeTerm: query('#archetypeTerm'), archetypeRent: query('#archetypeRent'), archetypeExpenses: query('#archetypeExpenses'), archetypeGrowth: query('#archetypeGrowth'),
@@ -320,8 +327,8 @@ const EquityEngine = {
             
         const growthRates = dom.archetypeGrowth.value.split('/').map(u.parseNumber);
         this.state = {
-            currentIncome: getVal(dom.currentIncome), annualSavings: getVal(dom.annualSavings), initialCapital: getVal(dom.initialCapital), 
-            taxRate: getVal(dom.taxRate, true), capitalGainsTaxRate: getVal(dom.capitalGainsTaxRate, true), incomeReplacement: getVal(dom.incomeReplacement, true), inflationRate: getVal(dom.inflationRate, true), coastFireIncome: getVal(dom.coastFireIncome),
+            currentIncome: getVal(dom.currentIncome), annualSavings: getVal(dom.annualSavings), initialStockPortfolio: getVal(dom.initialStockPortfolio), initialCapital: getVal(dom.initialCapital), 
+            taxRate: getVal(dom.taxRate, true), capitalGainsTaxRate: getVal(dom.capitalGainsTaxRate, true), incomeReplacement: getVal(dom.incomeReplacement, true), inflationRate: getVal(dom.inflationRate, true), coastFireIncome: getVal(dom.coastFireIncome), simulationHorizon: getVal(dom.simulationHorizon),
             riskProfile: dom.riskProfile.value, allocation: getVal(dom.allocationSlider, true),
             reinvestmentRate: getVal(dom.reinvestmentRate, true), sp500Return: getVal(dom.sp500Return, true),
             acquisitionFrequency: getVal(dom.acquisitionFrequency),
@@ -399,7 +406,8 @@ const EquityEngine = {
         // Section 2: Inputs
         addRow("Inputs - Personal", "Current W2 Income", u.formatCurrency(state.currentIncome));
         addRow("Inputs - Personal", "Total Annual Savings", u.formatCurrency(state.annualSavings));
-        addRow("Inputs - Personal", "Initial Investment Capital", u.formatCurrency(state.initialCapital));
+        addRow("Inputs - Personal", "Initial Stock Portfolio", u.formatCurrency(state.initialStockPortfolio));
+        addRow("Inputs - Personal", "New Investment Capital", u.formatCurrency(state.initialCapital));
         addRow("Inputs - Personal", "Post-W2 'Coast FIRE' Income", u.formatCurrency(state.coastFireIncome));
         addRow("Inputs - Personal", "Assumed Inflation %", (state.inflationRate * 100).toFixed(2));
         addRow("Inputs - Personal", "Marginal Tax %", (state.taxRate * 100).toFixed(2));
@@ -410,6 +418,7 @@ const EquityEngine = {
         addRow("Inputs - Strategy", "Annual Savings to RE %", (state.allocation * 100).toFixed(0));
         addRow("Inputs - Strategy", "Acquisition Cadence (Years)", state.acquisitionFrequency);
         addRow("Inputs - Strategy", "Cash Flow Reinvestment %", (state.reinvestmentRate * 100).toFixed(0));
+        addRow("Inputs - Strategy", "Simulation Horizon (Years)", state.simulationHorizon);
         csvRows.push("");
 
         const a = state.archetype;
@@ -463,8 +472,8 @@ const EquityEngine = {
             const annualBreakdown = []; let portfolio = [];
             state.existingPortfolio.forEach(existing => portfolio.push(new Property(existing.data, 0, existing.yearsOwned)));
             
-            let reWarChest = state.initialCapital * state.allocation;
-            let stockPortfolio = state.initialCapital * (1 - state.allocation);
+            let reWarChest = state.initialCapital * state.allocation; // War chest gets new cash only
+            let stockPortfolio = state.initialStockPortfolio + (state.initialCapital * (1 - state.allocation)); // Stock portfolio starts with existing value + new cash
             let goalMet = false, finalYear = 0;
             let targetIncome = state.currentIncome;
             const archetype = state.archetype;
@@ -474,8 +483,9 @@ const EquityEngine = {
             portfolio.forEach(p => { reCashFlows[0] -= (p.purchasePrice - p.loanAmount); });
             
             let totalCashInvestedRE = -reCashFlows[0];
+            const simulationYears = state.simulationHorizon || 50;
 
-            for (let year = 1; year <= 50; year++) {
+            for (let year = 1; year <= simulationYears; year++) {
                 let cashFlowFromPrevYear = year > 1 ? annualBreakdown[year - 2].afterTaxCashFlow : 0;
                 
                 const savingsToRE = state.annualSavings * state.allocation;
@@ -525,7 +535,7 @@ const EquityEngine = {
                 targetIncome *= (1 + state.inflationRate);
             }
             
-            const fiYear = goalMet ? finalYear : 50;
+            const fiYear = goalMet ? finalYear : simulationYears;
             const fiYearData = annualBreakdown[fiYear - 1];
             
             const finalPortfolioValue = portfolio.reduce((sum, p) => sum + p.value, 0);
@@ -533,7 +543,7 @@ const EquityEngine = {
             const portfolioIRR = this._calculateIRR(reCashFlows.slice(0, fiYear + 1));
             
             return {
-                verdict: { yearsToGoal: goalMet ? finalYear : '>50', propertiesAcquired: fiYearData.properties, reNetWorth: fiYearData.portfolioEquity, sp500NetWorth: fiYearData.stockPortfolio, totalCashInvested: totalCashInvestedRE, portfolioIRR },
+                verdict: { yearsToGoal: goalMet ? finalYear : `> ${simulationYears}`, propertiesAcquired: fiYearData.properties, reNetWorth: fiYearData.portfolioEquity, sp500NetWorth: fiYearData.stockPortfolio, totalCashInvested: totalCashInvestedRE, portfolioIRR },
                 annualBreakdown, targetIncome: state.currentIncome, inflation: state.inflationRate, coastFireIncome: state.coastFireIncome
             };
         },
@@ -560,8 +570,8 @@ const EquityEngine = {
         populateInputs(state) {
             const dom = EquityEngine.dom; if (!state) return;
             const setVal = (el, val, isPct = false) => { if (el) el.value = isPct ? (val || 0) * 100 : (val || ''); };
-            setVal(dom.currentIncome, state.currentIncome); setVal(dom.annualSavings, state.annualSavings); setVal(dom.initialCapital, state.initialCapital);
-            setVal(dom.taxRate, state.taxRate, true); setVal(dom.capitalGainsTaxRate, state.capitalGainsTaxRate, true); setVal(dom.incomeReplacement, state.incomeReplacement, true); setVal(dom.inflationRate, state.inflationRate, true);
+            setVal(dom.currentIncome, state.currentIncome); setVal(dom.annualSavings, state.annualSavings); setVal(dom.initialStockPortfolio, state.initialStockPortfolio); setVal(dom.initialCapital, state.initialCapital);
+            setVal(dom.taxRate, state.taxRate, true); setVal(dom.capitalGainsTaxRate, state.capitalGainsTaxRate, true); setVal(dom.incomeReplacement, state.incomeReplacement, true); setVal(dom.inflationRate, state.inflationRate, true); setVal(dom.simulationHorizon, state.simulationHorizon);
             setVal(dom.coastFireIncome, state.coastFireIncome); setVal(dom.reinvestmentRate, state.reinvestmentRate, true); setVal(dom.sp500Return, state.sp500Return, true);
             setVal(dom.acquisitionFrequency, state.acquisitionFrequency);
             if(dom.riskProfile) dom.riskProfile.value = state.riskProfile || 'moderate';
